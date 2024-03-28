@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="imgs/bronicon.png">
+    <title>Lebron's coin toss</title>
+</head>
+<body>
+   <div class="minibg">
+
+   </div>
+        <div class="container">
+            <h1>Lebron's Coin Toss </h1>
+            <div class="game-container">
+              <div class="player">
+                <h2>Player</h2>
+                <img src="imgs/bronicon.png" alt="">
+                <div class="health">Health: <span id="playerHealth">100</span></div>
+              </div>
+              <div class="opponent">
+                <h2>Opponent</h2>
+                <img src="imgs/curryicon.png" alt="">
+                <div class="health">Health: <span id="opponentHealth">100</span></div>
+              </div>
+            </div>
+            <div class="buttons-container">
+              <label for="coinChoice">Choose: </label>
+              <select id="coinChoice">
+                <option value="Head">Head</option>
+                <option value="Tail">Tail</option>
+              </select>
+              <button id="tossBtn" onclick="disabletoss()" class="btn">Toss Coin</button>
+              <button id="attackBtn" onclick="play2()"class="btn disabled">Attack</button>
+              <button id="defendBtn" onclick="play()" class="btn disabled">Defend</button>
+              <button id="resetBtn" class="btn disabled">Reset</button>
+            </div>
+            <img id="endscreen" src="" alt="">
+            <img id="headortails" src="" alt="">
+            <h1 id="option"></h1>
+            <img id="optionicon" src="" alt="">
+            <p class="result" id="result"></p>
+          </div>
+          
+          <script>
+            document.getElementById('tossBtn').addEventListener('click', tossCoin);
+            document.getElementById('attackBtn').addEventListener('click', () => playerAction('attack'));
+            document.getElementById('defendBtn').addEventListener('click', () => playerAction('defend'));
+            document.getElementById('resetBtn').addEventListener('click', resetBtn);
+            let playerHealth = 100;
+            let opponentHealth = 100;
+            let playerTurn = false;
+            let playerDefendHash = 0;
+
+            // Function to disable the "Toss Coin" button and coin choice dropdown after clicking it
+function disabletoss(){
+  document.getElementById("tossBtn").disabled=true;
+  document.getElementById("coinChoice").disabled=true;
+}
+
+// Function to execute when the "Toss Coin" button is clicked
+function tossCoin() {
+  // Randomly determine the result of the coin toss
+  const result = Math.random() < 0.5 ? 'Head' : 'Tail';
+  // Get the player's choice from the dropdown
+  const playerChoice = document.getElementById('coinChoice').value;
+  // Construct text to display the result of the toss and the player's choice
+  const resultText = "Coin is " + result + "! " + "You chose: " + playerChoice + "!";
+  
+  // Display the corresponding image for the coin toss result
+  if (result === 'Head') {
+    headortails.src = "imgs/broncoin2-removebg-preview.png";
+  }
+  if (result === 'Tail') {
+    headortails.src = "imgs/broncoin2tails-removebg-preview.png";
+  }
+
+  // Check if player's choice matches the result of the coin toss
+  if (result === playerChoice) {
+    playerTurn = true;
+    // Enable attack and defend buttons for the player
+    document.getElementById('attackBtn').classList.remove('disabled');
+    document.getElementById('defendBtn').classList.remove('disabled');
+  } else {
+    playerTurn = false;
+    // Enable attack and defend buttons for the player and initiate opponent's turn
+    document.getElementById('attackBtn').classList.remove('disabled');
+    document.getElementById('defendBtn').classList.remove('disabled');
+    opponentTurn();
+  }
+
+  // Display the result of the coin toss and disable the "Toss Coin" button
+  document.getElementById('result').innerText = resultText;
+  document.getElementById('tossBtn').classList.add('disabled');
+}
+
+// Function to calculate damage inflicted during attacks
+function calculateDamage() {
+  return Math.floor(Math.random() * 5) + 1;
+}
+
+// Function to execute when the player chooses to defend
+function playerDefend() {
+  if (playerDefendHash < Infinity) {
+    document.getElementById('result').innerText = 'You choose to defend.';
+    playerDefendHash++;
+  } else {
+    document.getElementById('result').innerText = '...';
+  }
+} 
+
+// Function to execute when the player performs an action (attack or defend)
+function playerAction(action) {
+  if (action === 'attack') {
+    // Calculate damage inflicted during the attack
+    const damage = calculateDamage();
+    // Reduce opponent's health and display the damage inflicted
+    opponentHealth -= damage;
+    document.getElementById('opponentHealth').innerText = Math.max(opponentHealth, 0);
+    document.getElementById('result').innerText = 'You inflict ' + damage + ' damage';
+    optionicon.src = "imgs/draymond.jpg";
+    headortails.src = "";
+  } else {
+    // Perform defense action
+    playerDefend();
+    optionicon.src = "imgs/blockedbyjames.jpg";
+    headortails.src = "";
+  }
+  // Check opponent's health after the action and initiate opponent's turn if necessary
+  checkHealth();
+  if (opponentHealth > 0) {
+    playerTurn = false;
+    opponentTurn();
+  }
+}
+
+// Function to execute opponent's turn
+function opponentTurn() {
+  // Enable attack and defend buttons for the player
+  document.getElementById('attackBtn').classList.remove('disabled');
+  document.getElementById('defendBtn').classList.remove('disabled');
+  // Execute opponent's action
+  if (!playerTurn && opponentHealth > 0) {
+    opponentAction();
+  }
+}
+
+// Function to execute opponent's action
+function opponentAction() {
+  // Randomly determine opponent's action (attack or defend)
+  const action = Math.random() < 0.5 ? 'attack' : 'defend';
+  if (action === 'attack') {
+    // Calculate damage inflicted by opponent's attack
+    let damage = calculateDamage();
+    // Handle player's defense
+    if (playerDefendHash > 0) {
+      if (Math.random() < 0.5) {
+        damage = 0;
+        document.getElementById('result').innerText = 'You completely blocked the opponent.';
+      } else {
+        damage = Math.min(damage, 3);
+        document.getElementById('result').innerText = 'You partially blocked the attack and received ' + damage + ' damage.';
+      }
+      playerDefendHash--;
+    } else {
+      document.getElementById('result').innerText = 'Opponent attacks and inflicts ' + damage + ' damage';
+    }
+    // Reduce player's health and display damage inflicted by the opponent
+    playerHealth -= damage;
+    document.getElementById('playerHealth').innerText = Math.max(playerHealth, 0);
+  } else {
+    // Handle opponent's defense
+    if (playerDefendHash > 0) {
+      document.getElementById('result').innerText = 'The opponent defended too.';
+      playerDefendHash--;
+    } else {
+      document.getElementById('result').innerText = 'Opponent chooses to defend.';
+    }
+  }
+  // Check player's health after opponent's action
+  checkHealth();
+}
+
+// Function to check the health of both player and opponent
+function checkHealth() {
+  // Check if player's health has reached zero or below
+  if (playerHealth <= 0) {
+    // Display game over message and opponent's victory image
+    document.getElementById('option').innerHTML = "Game Over";
+    document.getElementById('result').innerText = 'Opponent wins.';
+    optionicon.src = "";
+    endscreen.src = "imgs/defeat.jpg";
+    attackBtn.disabled = true;
+    defendBtn.disabled = true;
+    audio2.src="";
+    audio1.src="";
+    disableButtons();
+  } else if (opponentHealth <= 0) {
+    // Display game over message and player's victory image
+    document.getElementById('option').innerHTML = "Game Over";
+    document.getElementById('result').innerText = 'Player wins.';
+    attackBtn.disabled = true;
+    defendBtn.disabled = true;
+    optionicon.src = "";
+    endscreen.src = "imgs/victory.jpg";
+    audio3.src="cleveland.mp3"
+    audio2.src="";
+    audio1.src="";
+    disableButtons();
+  }
+}
+
+// Function to reset the game
+function resetBtn() {
+  // Reset player and opponent health, enable buttons, and clear result messages and images
+  playerHealth = 100;
+  opponentHealth = 100;
+  document.getElementById('playerHealth').innerText = playerHealth;
+  document.getElementById('opponentHealth').innerText = opponentHealth;
+  document.getElementById('result').innerText = '';
+  document.getElementById('attackBtn').classList.remove('disabled');
+  document.getElementById('defendBtn').classList.remove('disabled');
+  document.getElementById('resetBtn').classList.remove('disabled');
+  document.getElementById('tossBtn').classList.remove('disabled');
+  document.getElementById('tossBtn').disabled = false;
+  document.getElementById('coinChoice').classList.remove('disabled');
+  document.getElementById('coinChoice').disabled = false;
+  endscreen.src = "";
+  optionicon.src = "";
+  attackBtn.disabled = false;
+  defendBtn.disabled = false;
+  headortails.src = "";
+  audio2.src="bang.mp3";
+  audio.src="blocked.mp3";
+  document.getElementById('option').innerHTML = "";
+}
+
+// Function to re-enable buttons
+function disableButtons() {
+  document.getElementById('attackBtn').classList.remove('disabled');
+  document.getElementById('defendBtn').classList.remove('disabled');
+  document.getElementById('resetBtn').classList.remove('disabled');
+}
+
+// Function to play sound for defense action
+function play() {
+  var audio = document.getElementById("audio");
+  audio.play();
+}
+
+// Function to play sound for attack action
+function play2() {
+  var audio = document.getElementById("audio2");
+  audio.play();
+}
+
+           
+           
+          </script>
+          <audio id="audio" src="blocked.mp3"></audio>
+          <audio id="audio2" src="bang.mp3"></audio>
+          <audio autoplay id="audio3" src=""></audio>
+          
+        
+</body>
+</html>
